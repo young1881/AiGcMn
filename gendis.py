@@ -49,7 +49,6 @@ def save_img(images, count):
 
 
 def Data_Loader(batch_size):
-
     trans_img = transforms.Compose([transforms.ToTensor()])
     train = MNIST('./data', train=True, transform=trans_img, download=True)
     train_loader = DataLoader(train, batch_size=batch_size, shuffle=True, num_workers=10)
@@ -60,7 +59,6 @@ def Data_Loader(batch_size):
 
 
 def build_dis_gen(dis, gen, dis_epoch, gen_epoch, Batch_size):
-
     # load MNIST
     train, test, train_loader, test_loader = Data_Loader(Batch_size)  # data
 
@@ -143,8 +141,7 @@ def build_dis_gen(dis, gen, dis_epoch, gen_epoch, Batch_size):
         save_img(fake_img, i)
 
 
-
-#判别器，10分类，输入图像张量 x，输出类别
+# 判别器，10分类，输入图像张量 x，输出类别
 class Discriminator(nn.Module):
 
     #  卷积层和池化层
@@ -175,7 +172,7 @@ class Discriminator(nn.Module):
         return x
 
 
-#生成器，输入的噪声向量x,输出的值为大小为 batch_size x 1 x 28 x 28 的张量，表示生成的图像
+# 生成器，输入的噪声向量x,输出的值为大小为 batch_size x 1 x 28 x 28 的张量，表示生成的图像
 class Generator(nn.Module):
 
     def __init__(self, input_size, num_feature):
@@ -206,7 +203,6 @@ class Generator(nn.Module):
 
 
 if __name__ == "__main__":
-
     # training epoches
     Dis_epoch = 100
     # train Generator gen_epoch times in one dis_epoch
@@ -224,5 +220,3 @@ if __name__ == "__main__":
     Gen = Gen.cuda()
 
     build_dis_gen(dis=Dis, gen=Gen, dis_epoch=Dis_epoch, gen_epoch=Gen_epoch, Batch_size=batch_size)
-
-
