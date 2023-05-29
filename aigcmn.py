@@ -4,7 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import os
-from gendis import Generator, Discriminator
+from gendis import Generator, Discriminator, Test_Dis
+import torch.nn.functional as F
 
 
 class AiGcMn:
@@ -14,6 +15,8 @@ class AiGcMn:
         self.discriminator = Discriminator()
         self.discriminator.load_state_dict(torch.load(r'./model/Discriminator_cuda_32.pkl'))
         self.batchsize = 0
+        self.test_dis = Test_Dis()
+        self.test_dis.load_state_dict(torch.load(r'./model/modelpara.pth'))
 
     def input(self):
         numb1 = input('Input your number：').split()
@@ -49,24 +52,29 @@ class AiGcMn:
     def ad(self, img): # img是生成器的输出
         epsilon = 0.02
         noise = torch.zeros([1, 1, 28, 28])
+        noises = torch.zeros([28*28, 1, 28, 28])
+
         for i in range(28):
             for j in range(28):
-                loss_0 = torch.max(self.discriminator(img + noise))
-                if img[0, 0, i, j] + epsilon >= 0 and img[0, 0, i, j] + epsilon <= 1:
-                    noise[0, 0, i, j] += epsilon
-                    loss_1 = torch.max(self.discriminator(img + noise))
-                    if loss_1 <= loss_0:
-                        continue
-                    else:
-                        noise[0, 0, i, j] -= epsilon
-                        if img[0, 0, i, j] - epsilon >= 0 and img[0, 0, i, j] - epsilon <= 1:
-                            noise[0, 0, i, j] -= epsilon
-                            loss_2 = torch.max(self.discriminator(img + noise))
-                            if loss_2 <= loss_0:
-                                continue
-                            else:
-                                noise[0, 0, i, j] += epsilon
-        return img + noise
+                noises[28*i+j, 0, i, j] = epsilon
+        loss_0 = torch.max(self.discriminator(img))
+        print(loss_0)
+        loss_now = loss_0
+        ad = img + noise
+        for i in range(5):
+            if float(loss_now) < 0.5:
+                break
+            losses = torch.max(self.discriminator(img + noises),dim=1).values
+            noise += ((losses <= loss_0) * epsilon).reshape(1, 1, 28, 28)
+            noise -= ((losses > loss_0) * epsilon).reshape(1, 1, 28, 28)
+            ad = img + noise
+            # 我觉得想出下面两行有点费劲，不知道有没有方便的函数可以调用
+            ad *= (ad >= torch.zeros(1, 1, 28, 28)) # 将小于0的像素置0
+            ad = ad - ad * (ad > torch.ones(1, 1, 28, 28)) + (ad > torch.ones(1, 1, 28, 28)) # 将大于1的像素置1
+
+            loss_now = torch.max(self.discriminator(ad))
+
+        return ad
     
     def generate(self, input) -> torch.tensor:
         num_img = 1
@@ -84,6 +92,9 @@ class AiGcMn:
             # print(one_img.size())
             ad = self.ad(one_img)
             print(torch.max(self.discriminator(ad)))
+            # print(self.test_dis(ad))
+            # print(self.discriminator(ad))
+            # print(F.softmax(self.discriminator(ad), dim=1))
             piclist.append(ad) # 使用对抗样本作为输出
             # piclist.append(one_img)
         total_img = torch.cat(piclist, 0)
