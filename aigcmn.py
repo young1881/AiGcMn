@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import os
-from gendis import Generator, Discriminator, Test_Dis
+from gendis import Generator, Discriminator
 import torch.nn.functional as F
 
 
@@ -15,8 +15,6 @@ class AiGcMn:
         self.discriminator = Discriminator()
         self.discriminator.load_state_dict(torch.load(r'./model/Discriminator_cuda_32.pkl'))
         self.batchsize = 0
-        self.test_dis = Test_Dis()
-        self.test_dis.load_state_dict(torch.load(r'./model/modelpara.pth'))
 
     def input(self):
         numb1 = input('Input your number：').split()
@@ -49,22 +47,22 @@ class AiGcMn:
         plt.tight_layout()
         return width
     
+    # 生成用于OOD诱骗的对抗样本
     def ad(self, img): # img是生成器的输出
-        epsilon = 0.02
+        epsilon = 0.04
         noise = torch.zeros([1, 1, 28, 28])
         noises = torch.zeros([28*28, 1, 28, 28])
-
         for i in range(28):
             for j in range(28):
                 noises[28*i+j, 0, i, j] = epsilon
         loss_0 = torch.max(self.discriminator(img))
-        print(loss_0)
+        # print(loss_0)
         loss_now = loss_0
         ad = img + noise
         for i in range(5):
             if float(loss_now) < 0.5:
                 break
-            losses = torch.max(self.discriminator(img + noises),dim=1).values
+            losses = torch.max(self.discriminator(ad + noises),dim=1).values
             noise += ((losses <= loss_0) * epsilon).reshape(1, 1, 28, 28)
             noise -= ((losses > loss_0) * epsilon).reshape(1, 1, 28, 28)
             ad = img + noise
@@ -89,14 +87,9 @@ class AiGcMn:
             one_img = self.generator(finaltensor)  # 将向量放入生成网络G生成一张图片
             # 归一化：严格限制在[0, 1]
             one_img = (one_img - one_img.min()) / (one_img.max() - one_img.min())
-            # print(one_img.size())
             ad = self.ad(one_img)
-            print(torch.max(self.discriminator(ad)))
-            # print(self.test_dis(ad))
-            # print(self.discriminator(ad))
-            # print(F.softmax(self.discriminator(ad), dim=1))
+            # print(torch.max(self.discriminator(ad)))
             piclist.append(ad) # 使用对抗样本作为输出
-            # piclist.append(one_img)
         total_img = torch.cat(piclist, 0)
         self.showall(total_img)
         if not os.path.exists('./result/'):
