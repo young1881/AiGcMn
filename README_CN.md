@@ -2,6 +2,7 @@
 
 # Mnist条件生成器
 
+![](https://img.shields.io/badge/License-MIT-brightgreen.svg) ![](https://img.shields.io/badge/build-passing-brightgreen.svg) ![](https://img.shields.io/badge/Release-Ver2.0-blueviolet.svg) ![](https://img.shields.io/badge/python->=3.8-blue.svg)
 ## 背景
 这是基于 [MINST 数据集]( http://yann.lecun.com/exdb/mnist/) 的 [CGAN](https://arxiv.org/abs/1411.1784) 的实现。
 
@@ -15,10 +16,14 @@ MNIST 数据集来自美国国家标准技术研究院（National Institute of S
 这是一个 pytorch 项目，因此可以按如下方式使用：
 
 ```
-pip install -r requirement.txt
+pip install -r requirements.txt
 python3 aigcmn.py 
 ```
 
 输出的png图片可以在 `/result` 目录下看到。
+
+## 贡献者
+感谢以下参与项目的人：
+[Fannyzzzz](https://github.com/Fannyzzzz), [Skyuan07](https://github.com/Skyuan07), [chatterboxthur](https://github.com/chatterboxthur), [noiho](https://github.com/noiho), [young1881](https://github.com/young1881)
 ## 协议
 [MIT](LICENSE) &copy; Wortox Young
