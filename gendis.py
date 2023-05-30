@@ -1,3 +1,7 @@
+"""
+Training both discriminator & generator
+"""
+
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -48,8 +52,7 @@ def save_img(images, count, root_dir):
     plt.savefig(root_dir + r'images/%d.png' % count, bbox_inches='tight')
 
 
-def Data_Loader(batch_size):
-
+def data_Loader(batch_size):
     trans_img = transforms.Compose([transforms.ToTensor()])
     train = MNIST('./data', train=True, transform=trans_img, download=True)
     train_loader = DataLoader(train, batch_size=batch_size, shuffle=True, num_workers=10)
@@ -58,27 +61,27 @@ def Data_Loader(batch_size):
 
     return train, test, train_loader, test_loader
 
+
 def save_log(y, x, save_dir, ylabel):
     plt.figure(figsize=(20, 10), dpi=100)
     plt.plot(x, y, linewidth=2.0)
     plt.xlabel('Epoch', fontsize=20)
     plt.ylabel(ylabel, fontsize=20)
-    plt.xticks(fontsize=20,rotation=90)
+    plt.xticks(fontsize=20, rotation=90)
     plt.yticks(fontsize=20)
-    # plt.tight_layout() # ⾃动调整布局空间，就不会出现图⽚保存不完整
+    # plt.tight_layout() # wrap automatically
     dir = save_dir + ylabel
-    plt.savefig(dir,  # ⽂件名：png、jpg、pdf
-                dpi=100,  # 保存图⽚像素密度
-                bbox_inches='tight')  # 保存图⽚完整
+    plt.savefig(dir,  # filename：png、jpg、pdf
+                dpi=100,
+                bbox_inches='tight')  # save completely
 
 
 def build_dis_gen(dis, gen, dis_epoch, gen_epoch, Batch_size):
-
     # save_dir
     root = './CGAN_3rd/'
 
     # load MNIST
-    train, test, train_loader, test_loader = Data_Loader(Batch_size)  # data
+    train, test, train_loader, test_loader = data_Loader(Batch_size)  # data
 
     # define the optimizer
     dis_optimizer = optim.Adam(dis.parameters(), lr=0.0003)
@@ -150,7 +153,7 @@ def build_dis_gen(dis, gen, dis_epoch, gen_epoch, Batch_size):
             save_model_cpu(dis, root + r'Discriminator_cpu_epoch_%d.pkl' % i)
 
         # Visualize the training log
-        log_epoch.append(i+1)
+        log_epoch.append(i + 1)
         log_dis_loss.append(dis_loss.data.item())
         log_gen_loss.append(gen_loss.data.item())
         log_real_score.append(real_score.data.mean())
@@ -176,10 +179,14 @@ def build_dis_gen(dis, gen, dis_epoch, gen_epoch, Batch_size):
         save_img(fake_img, i, root)
 
 
-#判别器，10分类，输入图像张量 x，输出类别
 class Discriminator(nn.Module):
+    """
+    the discriminator which classify 10 numbers
+    input: the image tensor
+    output: classification of number
+    """
 
-    #  卷积层和池化层
+    # convolutional & pooling layer
     def __init__(self):
         super(Discriminator, self).__init__()
 
@@ -192,7 +199,7 @@ class Discriminator(nn.Module):
             nn.MaxPool2d((2, 2))
         )
 
-        # 全连接层
+        # fully connected layer
         self.fc = nn.Sequential(
             nn.Linear(7 * 7 * 64, 1024),
             nn.LeakyReLU(0.2, True),
@@ -208,8 +215,12 @@ class Discriminator(nn.Module):
         return x
 
 
-#生成器，输入的噪声向量x,输出的值为大小为 batch_size x 1 x 28 x 28 的张量，表示生成的图像
 class Generator(nn.Module):
+    """
+    the generator
+    input: noise vector x
+    output: image tensor with batch_size 1 x 28 x 28
+    """
 
     def __init__(self, input_size, num_feature):
         super(Generator, self).__init__()
@@ -239,7 +250,6 @@ class Generator(nn.Module):
 
 
 if __name__ == "__main__":
-
     # training epoches
     Dis_epoch = 120
     # train Generator gen_epoch times in one dis_epoch
@@ -257,5 +267,3 @@ if __name__ == "__main__":
     Gen = Gen.cuda()
 
     build_dis_gen(dis=Dis, gen=Gen, dis_epoch=Dis_epoch, gen_epoch=Gen_epoch, Batch_size=batch_size)
-
-
