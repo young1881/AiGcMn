@@ -19,8 +19,7 @@ This is a pytorch project so it could be used as follow:
 pip install -r requirements.txt
 python3 aigcmn.py
 ```
-
-The output png figure could be found in `/result`.
+Then `input()` of class `AiGnMn` will be called to transfer input integer (0 ~ 9) to a tensor. Afterwards, method `generate()` will take in the tensor and returns returns $n*1*28*28$ tensor. Both the output tensor text and image could be found in `/result`.
 
 ## Contributors
 This project exists thanks to all the people who contribute: 

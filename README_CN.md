@@ -20,7 +20,7 @@ pip install -r requirements.txt
 python3 aigcmn.py 
 ```
 
-输出的png图片可以在 `/result` 目录下看到。
+之后 `AiGnMn` 类的 `input()` 方法会将输入的整型数转为 $n$ 维tensor。得到的tensor作为 `generate()` 方法的输入后返回 $n*1*28*28$ 的tensor。输出tensor的文本和图片都写入到 `/result` 目录下。
 
 ## 贡献者
 感谢以下参与项目的人：
